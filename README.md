@@ -1,61 +1,109 @@
-# FinFlow — Finance Dashboard
+# FinSight — Finance Dashboard
 
 A responsive finance dashboard for tracking income, expenses, and spending patterns. Built with Next.js 16, TypeScript, Tailwind CSS v4, Zustand, and Recharts.
 
-Supports role-based access (admin/viewer), real-time filtering, dark mode, and data export.
+---
 
-## Setup
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
 
 ```bash
-git clone https://github.com/yourusername/finance-dashboard.git
-cd finance-dashboard
+git clone https://github.com/anothercoder-nik/FinSight.git
+cd FinSight
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-For production:
+### Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-## How It Works
+The app can be deployed directly to Vercel — just connect the GitHub repo and it handles the rest.
 
-The app is a single-page scrollable layout with three sections — Dashboard, Transactions, and Insights — navigated through a sidebar with scroll-spy highlighting.
+---
 
-### State management
+## Overview of Approach
 
-Two Zustand stores handle the state:
+### Architecture
 
-- **`useTransactionStore`** — transactions array + filter state. Only the transaction array gets persisted to localStorage; filters reset on reload so the user always starts clean.
-- **`useRoleStore`** — role selection (admin/viewer) and dark mode toggle. Both persisted.
+I went with a single-page scrollable layout instead of separate routes. The dashboard is primarily a monitoring tool, so keeping everything on one page with smooth scroll navigation between Dashboard, Transactions, and Insights sections felt more natural than forcing page transitions. A sidebar with scroll-spy highlighting shows the user where they are.
 
-I picked Zustand over Context because the selector pattern (`useStore(s => s.field)`) avoids unnecessary re-renders, and the `persist` middleware handles localStorage without extra boilerplate.
+### State Management
 
-### Data layer
+I used Zustand with two separate stores:
 
-All CRUD operations go through a mock API (`src/lib/api.ts`) with async delays. This simulates real network behavior and lets me show loading skeletons. The idea is that swapping in a real backend later won't require touching any UI code.
+- **`useTransactionStore`** handles the transaction array, filter state, and all CRUD operations. Only the transaction data gets persisted to localStorage — filters intentionally reset on reload so the user starts fresh each session.
+- **`useRoleStore`** manages the role toggle (admin/viewer) and dark mode preference. Both are persisted so the UI remembers your choices.
+
+I picked Zustand over Context or Redux because its selector pattern (`useStore(s => s.field)`) prevents re-renders out of the box, and the `persist` middleware handles localStorage without extra wiring.
+
+### Data Layer
+
+Rather than hardcoding data into components, I built a mock API layer (`src/lib/api.ts`) that wraps the data in async calls with simulated delays. This way the loading skeletons and async patterns are real, and swapping in an actual API later would only need changes in that one file — no UI code needs to touch.
 
 ### Filtering
 
-There's a single `applyFilters` function in `utils.ts` that takes the full transaction list and the current filter state, returns the filtered result. Quick filter presets (This Month, High Value, etc.) just set the same filter state under the hood — no separate logic.
+All filtering logic lives in a single pure function called `applyFilters` in `utils.ts`. It takes the full transaction array and the current filter state, then returns the filtered and sorted result. The quick filter presets (This Month, ₹5,000+, Income, etc.) just modify the same filter state — no separate codepath, everything stays consistent.
+
+### Component Structure
+
+Components are grouped by feature: `dashboard/`, `transactions/`, `insights/`, `layout/`, and a shared `ui/` folder for reusable primitives like Card, Badge, Toast, and EmptyState. Each feature component pulls its own data from Zustand selectors, keeping them self-contained.
+
+---
 
 ## Features
 
-- Summary cards with animated counters (balance, income, expenses)
-- Balance trend chart (income vs expenses vs net) and spending breakdown donut
-- Transaction table with search, category/type dropdowns, sort, and date/amount range filters
-- Quick filter chips for common views
-- Add/edit/delete transactions (admin only) with form validation
-- CSV and JSON export of filtered data
-- Dark/light mode with persistent toggle
-- Role switcher (viewer = read-only, admin = full CRUD)
-- Keyboard shortcuts: `/` for search, `N` for new transaction, `Esc` to close modals
-- Toast notifications for actions
-- Responsive — sidebar on desktop, bottom nav on mobile
+### Dashboard
+- Summary cards showing Total Balance, Total Income, and Total Expenses with animated number counters
+- Balance Trend chart — multi-line chart showing income, expenses, and net balance across months
+- Spending Breakdown — donut chart with category-wise expense distribution and an inline legend
+
+### Transactions
+- Full transaction table with date, category, amount, type, and notes
+- Text search across categories, notes, and amounts
+- Category and type dropdown filters
+- Sort by date or amount (ascending/descending)
+- Quick filter chips — one-click presets for "This Month", "Last Month", "₹5,000+", "Income Only", "Expenses Only"
+- Advanced filters panel with date range picker and min/max amount range
+- Active filter count badge showing how many filters are applied
+- Export filtered data as CSV or JSON
+- Add, edit, and delete transactions with form validation (admin role only)
+
+### Role-Based Access
+- **Viewer** — can browse, filter, search, and export. No write access.
+- **Admin** — full CRUD access including add, edit, and delete
+- Role switch via dropdown in the top bar, persisted to localStorage
+
+### Insights
+- Top Expense — highest spending category with a proportional progress bar
+- Monthly Trend — month-over-month expense percentage change
+- Savings Rate — percentage of income saved, with a health indicator (green above 20%, orange below)
+- This Month summary — current month's spending, income, and net balance
+- Spending by Category — ranked breakdown with proportional bars and percentages
+
+### Additional
+- Dark/light mode toggle with persistent preference
+- Data persistence via localStorage
+- Loading skeletons during initial data fetch
+- Toast notifications on add, edit, and delete actions
+- Keyboard shortcuts — `/` to focus search, `N` to add transaction (admin), `Esc` to close modals
+- Scroll-spy navigation — sidebar highlights the active section as you scroll
+- Relative date labels ("Today", "Yesterday") on recent transactions
+- Color-coded row indicators — green border for income, red for expense
+- Responsive layout — desktop sidebar collapses to mobile bottom navigation
+- Empty state handling when there's no data or no filter results
+
+---
 
 ## Tech Stack
 
@@ -69,24 +117,8 @@ There's a single `applyFilters` function in `utils.ts` that takes the full trans
 | Icons | Lucide React |
 | Font | Outfit (Google Fonts) |
 
-## Project Structure
-
-```
-src/
-├── app/                    # Root layout, page, global styles
-├── components/
-│   ├── dashboard/          # Summary cards, charts, greeting
-│   ├── transactions/       # Table, filters, modal
-│   ├── insights/           # Derived metrics and category breakdown
-│   ├── layout/             # Sidebar, topbar, data provider
-│   └── ui/                 # Reusable primitives (Card, Badge, Toast, EmptyState)
-├── hooks/                  # useAnimatedCounter, useScrollSpy
-├── store/                  # Zustand stores
-├── lib/                    # Mock API, utils, cn helper
-├── data/                   # Mock transaction dataset
-└── types/                  # TypeScript definitions
-```
+---
 
 ## Author
 
-**Nikunj**
+**Nikunj** — [GitHub](https://github.com/anothercoder-nik)
