@@ -75,21 +75,21 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-white dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-[#2a2a2a] flex items-center justify-around z-20 transition-colors">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#1a1a1a] border-t border-gray-100 dark:border-[#2a2a2a] flex items-center justify-around z-20 transition-colors">
         {navItems.map((item, i) => (
           <button
             key={item.label}
             onClick={() => scrollTo(i)}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-200 btn-press
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 btn-press
               ${active === i
                 ? "text-orange-500"
                 : "text-gray-400"
               }`}
           >
-            <item.icon size={18} />
-            <span className="text-[10px] font-medium">{item.label}</span>
+            <item.icon size={20} />
+            <span className="text-[11px] font-medium">{item.label}</span>
             {active === i && (
-              <span className="absolute bottom-1 w-4 h-0.5 bg-orange-500 rounded-full" />
+              <span className="absolute bottom-1.5 w-5 h-0.5 bg-orange-500 rounded-full" />
             )}
           </button>
         ))}

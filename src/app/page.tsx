@@ -64,7 +64,7 @@ export default function DashboardPage() {
     <DataProvider>
       <div className="flex min-h-screen">
         <Sidebar />
-        <div className="flex-1 md:ml-16 flex flex-col pb-16 md:pb-0">
+        <div className="flex-1 md:ml-16 flex flex-col pb-20 md:pb-0">
           <Topbar />
           <DashboardContent />
         </div>
